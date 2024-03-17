@@ -103,10 +103,10 @@ if start_date and end_date:
         # Proceed with Excel file creation and download functionality
         to_excel = BytesIO()
         with pd.ExcelWriter(to_excel, engine='openpyxl') as writer:
-            df.to_excel(writer, sheet_name='Sheet1')
-            writer.save()
+        df.to_excel(writer, sheet_name='Sheet1')
+        # No need to call writer.save()
         to_excel.seek(0)  # Go to the beginning of the stream
-
+    
         # Add a download button for the Excel file
         st.download_button(label="Download Excel file",
                            data=to_excel,
