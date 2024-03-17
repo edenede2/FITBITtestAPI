@@ -119,7 +119,7 @@ if start_date and end_date:
             df = pd.DataFrame(list(sleep_stages.items()), columns=['Stage', 'Minutes'])
     
             # Plotting the data
-            fig = px.bar(df_sleep_levels, x='Stage', y='Minutes', title='Distribution of Sleep Stages',
+            fig = px.bar(df, x='Stage', y='Minutes', title='Distribution of Sleep Stages',
                          labels={'Minutes': 'Minutes Spent'}, color='Stage')
             st.plotly_chart(fig)
         else:
@@ -136,13 +136,13 @@ if start_date and end_date:
             average_heart_rates.append(entry['value']['restingHeartRate'])
     
         # Prepare the DataFrame for visualization
-        df_heart_rate = pd.DataFrame({
+        df = pd.DataFrame({
             'Date': dates,
             'Average Heart Rate': average_heart_rates
         })
     
         # Plotting the data
-        fig = px.line(df_heart_rate, x='Date', y='Average Heart Rate', title='Average Heart Rate Over Time',
+        fig = px.line(df, x='Date', y='Average Heart Rate', title='Average Heart Rate Over Time',
                       labels={'Average Heart Rate': 'BPM (Beats Per Minute)'})
         st.plotly_chart(fig)
 
