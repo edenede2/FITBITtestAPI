@@ -126,26 +126,27 @@ if start_date and end_date:
             st.write("No sleep data available for the selected date range.")
     elif data_type == 'Heart Rate':
         heart_rate_data = fetch_data(selected_token, 'Heart Rate', start_date.isoformat(), end_date.isoformat())
-        # Assuming the structure includes 'activities-heart' with date-wise entries
+        entries = heart_rate_data.get('activities-heart', [])  # Use .get() to avoid KeyError
+    
         dates = []
         average_heart_rates = []
     
-        for entry in heart_rate_data['activities-heart']:
-            dates.append(entry['dateTime'])
-            # Assuming 'restingHeartRate' is available; adapt as needed based on your data structure
-            average_heart_rates.append(entry['value']['restingHeartRate'])
+        for entry in entries:
+            date = entry.get('dateTime')
+            value = entry.get('value', {}).get('restingHeartRate')  # Nested .get() for nested dictionaries
+            if date and value:  # Ensure both date and value are not None
+                dates.append(date)
+                average_heart_rates.append(value)
     
-        # Prepare the DataFrame for visualization
-        df = pd.DataFrame({
-            'Date': dates,
-            'Average Heart Rate': average_heart_rates
-        })
-    
-        # Plotting the data
-        fig = px.line(df, x='Date', y='Average Heart Rate', title='Average Heart Rate Over Time',
-                      labels={'Average Heart Rate': 'BPM (Beats Per Minute)'})
-        st.plotly_chart(fig)
-
+        if dates and average_heart_rates:  # Check if lists are not empty
+            df_heart_rate = pd.DataFrame({
+                'Date': dates,
+                'Average Heart Rate': average_heart_rates
+            })
+            fig = px.line(df_heart_rate, x='Date', y='Average Heart Rate', title='Daily Average Heart Rate')
+            st.plotly_chart(fig)
+        else:
+            st.write("No heart rate data available for the selected date range.")
     
     # Check if df is defined and not empty
     if not df.empty:
