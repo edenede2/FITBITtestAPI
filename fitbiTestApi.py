@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 import plotly.express as px
+from io import BytesIO
 
 # Function to fetch data
 def fetch_data(access_token, data_type, start_date, end_date):
