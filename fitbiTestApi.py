@@ -91,7 +91,9 @@ df = pd.DataFrame()  # Initialize df as an empty DataFrame
 # Ensure you adjust your data processing and plotting according to the corrected data type handling
 if start_date and end_date:
     fetched_data = fetch_data(selected_token, data_type, start_date.isoformat(), end_date.isoformat())
-    if data_type == 'Sleep':
+    if fetched_data is None:
+        st.error("Failed to fetch data. Please check the console for more details.")
+    elif data_type == 'Sleep':
         dates = [item['dateOfSleep'] for item in fetched_data.get('sleep', [])]
         durations = [item['duration']/3600000 for item in fetched_data.get('sleep', [])]  # Convert from milliseconds to hours
         df = pd.DataFrame({'Date': dates, 'Duration': durations})
