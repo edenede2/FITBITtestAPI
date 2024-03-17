@@ -33,9 +33,12 @@ def fetch_data(access_token, data_type, start_date, end_date):
 # Load access tokens from a file
 @st.cache
 def load_tokens(file_path):
+    tokens = {}
     with open(file_path, 'r') as file:
-        tokens = file.readlines()
-    return [token.strip() for token in tokens]
+        for line in file:
+            label, token = line.strip().split(' = ')
+            tokens[label] = token
+    return tokens
 
 # UI
 st.title('Fitbit Data Explorer')
@@ -43,7 +46,8 @@ st.title('Fitbit Data Explorer')
 # Load and select access token
 token_file_path = 'access_tokens.txt'  # Ensure this file exists and contains access tokens, one per line
 tokens = load_tokens(token_file_path)
-selected_token = st.selectbox('Select a Watch:', tokens)
+selected_label = st.selectbox('Select a Watch:', list(tokens.keys()))
+selected_token = tokens[selected_label]
 
 # Select data type
 data_type = st.radio("Select Data Type:", ['Sleep', 'Activity'])
