@@ -78,7 +78,7 @@ default_end_date = datetime.date.today()
 
 # Existing code to select the date range
 selected_date_range = st.date_input("Select Date Range:", [default_start_date, default_end_date])
-df = pf.DataFrame()
+df = pd.DataFrame()
 
 # Validate selected date range
 if len(selected_date_range) == 2:
