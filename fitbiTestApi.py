@@ -40,14 +40,18 @@ def fetch_data(access_token, data_type, start_date, end_date):
     return response.json()
 
 # Load access tokens from a file
-@st.experimental_memo
+@st.cache_data
 def load_tokens(file_path):
     tokens = {}
     with open(file_path, 'r') as file:
         for line in file:
             if line.strip():  # Ensure the line is not empty
-                label, token = line.strip().split(' = ')
-                tokens[label] = token
+                try:
+                    label, token = line.strip().split(' = ')
+                    tokens[label] = token
+                except ValueError:
+                    # Skip lines that do not have the correct format
+                    continue
     return tokens
 
 # UI
