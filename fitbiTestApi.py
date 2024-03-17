@@ -54,14 +54,7 @@ selected_token = tokens[selected_label]
 data_type = st.radio("Select Data Type:", ['Sleep', 'Activity'])
 
 # Date range picker
-date_range = st.date_input("Select Date Range:")
-if len(date_range) == 2:
-    start_date, end_date = date_range
-    fetched_data = fetch_data(selected_token, data_type, start_date.isoformat(), end_date.isoformat())
-    # Assuming the rest of the data handling and plotting logic remains the same...
-else:
-    st.write("Please select a start and end date.")
-
+start_date, end_date = st.date_input("Select Date Range:", [])
 
 # Fetch and display data if dates are selected
 if start_date and end_date:
