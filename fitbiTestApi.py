@@ -92,9 +92,9 @@ if len(selected_date_range) == 2:
                 sleep_data = fetched_data.get('sleep', [])
                 dates = [sd['dateOfSleep'] for sd in sleep_data]
                 durations = [sd['duration']/3600000 for sd in sleep_data]  # Convert milliseconds to hours
-                df_sleep = pd.DataFrame({'Date': dates, 'Duration': durations})
+                df = pd.DataFrame({'Date': dates, 'Duration': durations})
                 if not df_sleep.empty:
-                    fig = px.bar(df_sleep, x='Date', y='Duration', title='Sleep Duration Over Time', labels={'Duration': 'Duration (hours)'})
+                    fig = px.bar(df, x='Date', y='Duration', title='Sleep Duration Over Time', labels={'Duration': 'Duration (hours)'})
                     st.plotly_chart(fig)
                 else:
                     st.write("No sleep data available for the selected date range.")
@@ -104,9 +104,9 @@ if len(selected_date_range) == 2:
                 heart_rate_data = fetched_data.get('activities-heart', [])
                 dates = [hr['dateTime'] for hr in heart_rate_data]
                 average_heart_rates = [hr['value'].get('restingHeartRate', 0) for hr in heart_rate_data]
-                df_hr = pd.DataFrame({'Date': dates, 'Average Heart Rate': average_heart_rates})
+                df = pd.DataFrame({'Date': dates, 'Average Heart Rate': average_heart_rates})
                 if not df_hr.empty:
-                    fig = px.line(df_hr, x='Date', y='Average Heart Rate', title='Daily Average Heart Rate')
+                    fig = px.line(df, x='Date', y='Average Heart Rate', title='Daily Average Heart Rate')
                     st.plotly_chart(fig)
                 else:
                     st.write("No heart rate data available for the selected date range.")
