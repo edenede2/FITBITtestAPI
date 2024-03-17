@@ -60,14 +60,16 @@ start_date, end_date = st.date_input("Select Date Range:", [])
 if start_date and end_date:
     fetched_data = fetch_data(selected_token, data_type, start_date, end_date)
     if data_type == 'Sleep':
-        # Example: Extract and plot sleep data
-        # Adjust the extraction based on how the sleep data is structured in the fetched_data
-        st.write(fetched_data)  # Placeholder to show raw data
-    else:
-        # Process activity data
         dates = [item['dateTime'] for item in fetched_data['activities-steps']]
         steps = [int(item['value']) for item in fetched_data['activities-steps']]
         df = pd.DataFrame({'Date': dates, 'Steps': steps})
+        fig = px.line(df, x='Date', y='Steps', title='Activity Over Time')
+        st.plotly_chart(fig)
+    else:
+        # Process activity data
+        dates = [item['dateOfSleep'] for item in fetched_data['activities-steps']]
+        duration = [int(item['duration']) for item in fetched_data['activities-steps']]
+        df = pd.DataFrame({'Date': dates, 'sleep': duration})
         fig = px.line(df, x='Date', y='Steps', title='Activity Over Time')
         st.plotly_chart(fig)
 
