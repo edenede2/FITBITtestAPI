@@ -64,10 +64,22 @@ if start_date and end_date:
         # Adjust the extraction based on how the sleep data is structured in the fetched_data
         st.write(fetched_data)  # Placeholder to show raw data
     else:
-        # Example: Extract and plot activity data
-        # Convert to DataFrame for easier plotting
+        # Process activity data
         dates = [item['dateTime'] for item in fetched_data['activities-steps']]
         steps = [int(item['value']) for item in fetched_data['activities-steps']]
         df = pd.DataFrame({'Date': dates, 'Steps': steps})
         fig = px.line(df, x='Date', y='Steps', title='Activity Over Time')
         st.plotly_chart(fig)
+
+    # Generate an Excel file from the DataFrame
+    to_excel = BytesIO()
+    with pd.ExcelWriter(to_excel, engine='xlsxwriter') as writer:
+        df.to_excel(writer, sheet_name='Sheet1')
+        writer.save()
+    to_excel.seek(0)  # Go to the beginning of the stream
+
+    # Add a download button for the Excel file
+    st.download_button(label="Download Excel file",
+                       data=to_excel,
+                       file_name="fitbit_data.xlsx",
+                       mime="application/vnd.ms-excel")
