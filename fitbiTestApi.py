@@ -100,23 +100,28 @@ if start_date and end_date:
         st.plotly_chart(fig)
     elif data_type == 'Sleep Levels':
         sleep_levels_data = fetch_data(selected_token, 'Sleep Levels', start_date.isoformat(), end_date.isoformat())
-        # Initialize a dictionary to store aggregated sleep stage durations
-        sleep_stages = {'Light': 0, 'Deep': 0, 'REM': 0, 'Awake': 0}
+        
+        # Safely check if 'sleep' key exists in the response
+        if 'sleep' in sleep_levels_data:
+            # Initialize a dictionary to store aggregated sleep stage durations
+            sleep_stages = {'Light': 0, 'Deep': 0, 'REM': 0, 'Awake': 0}
     
-        # Loop through each night's data
-        for night in sleep_levels_data['sleep']:
-            for stage in night['levels']['data']:
-                # Aggregate the durations by sleep stage
-                if stage['level'] in sleep_stages:
-                    sleep_stages[stage['level']] += stage['seconds'] / 60  # Convert seconds to minutes
+            # Loop through each night's data
+            for night in sleep_levels_data['sleep']:
+                for stage in night['levels']['data']:
+                    # Aggregate the durations by sleep stage
+                    if stage['level'] in sleep_stages:
+                        sleep_stages[stage['level']] += stage['seconds'] / 60  # Convert seconds to minutes
     
-        # Prepare the DataFrame for visualization
-        df_sleep_levels = pd.DataFrame(list(sleep_stages.items()), columns=['Stage', 'Minutes'])
+            # Prepare the DataFrame for visualization
+            df_sleep_levels = pd.DataFrame(list(sleep_stages.items()), columns=['Stage', 'Minutes'])
     
-        # Plotting the data
-        fig = px.bar(df_sleep_levels, x='Stage', y='Minutes', title='Distribution of Sleep Stages',
-                     labels={'Minutes': 'Minutes Spent'}, color='Stage')
-        st.plotly_chart(fig)
+            # Plotting the data
+            fig = px.bar(df_sleep_levels, x='Stage', y='Minutes', title='Distribution of Sleep Stages',
+                         labels={'Minutes': 'Minutes Spent'}, color='Stage')
+            st.plotly_chart(fig)
+        else:
+            st.write("No sleep data available for the selected date range.")
     elif data_type == 'Heart Rate':
         heart_rate_data = fetch_data(selected_token, 'Heart Rate', start_date.isoformat(), end_date.isoformat())
         # Assuming the structure includes 'activities-heart' with date-wise entries
