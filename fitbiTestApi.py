@@ -31,20 +31,21 @@ def fetch_data(access_token, data_type, start_date, end_date):
     return response.json()
 
 # Load access tokens from a file
-@st.cache
+@st.experimental_memo
 def load_tokens(file_path):
     tokens = {}
     with open(file_path, 'r') as file:
         for line in file:
-            label, token = line.strip().split(' = ')
-            tokens[label] = token
+            if line.strip():  # Ensure the line is not empty
+                label, token = line.strip().split(' = ')
+                tokens[label] = token
     return tokens
 
 # UI
 st.title('Fitbit Data Explorer')
 
 # Load and select access token
-token_file_path = 'access_tokens.txt'  # Ensure this file exists and contains access tokens, one per line
+token_file_path = 'access_tokens.txt'  # Ensure this file exists
 tokens = load_tokens(token_file_path)
 selected_label = st.selectbox('Select a Watch:', list(tokens.keys()))
 selected_token = tokens[selected_label]
@@ -53,7 +54,14 @@ selected_token = tokens[selected_label]
 data_type = st.radio("Select Data Type:", ['Sleep', 'Activity'])
 
 # Date range picker
-start_date, end_date = st.date_input("Select Date Range:", [])
+date_range = st.date_input("Select Date Range:")
+if len(date_range) == 2:
+    start_date, end_date = date_range
+    fetched_data = fetch_data(selected_token, data_type, start_date.isoformat(), end_date.isoformat())
+    # Assuming the rest of the data handling and plotting logic remains the same...
+else:
+    st.write("Please select a start and end date.")
+
 
 # Fetch and display data if dates are selected
 if start_date and end_date:
