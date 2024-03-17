@@ -86,33 +86,31 @@ else:
 if start_date and end_date:
     fetched_data = fetch_data(selected_token, data_type, start_date.isoformat(), end_date.isoformat())
     if data_type == 'Sleep':
-        # Adjust this part to correctly process and plot sleep data
         dates = [item['dateOfSleep'] for item in fetched_data.get('sleep', [])]
         durations = [item['duration']/3600000 for item in fetched_data.get('sleep', [])]  # Convert from milliseconds to hours
-        df_sleep = pd.DataFrame({'Date': dates, 'Duration': durations})
-        fig = px.bar(df_sleep, x='Date', y='Duration', title='Sleep Duration Over Time', labels={'Duration': 'Duration (hours)'})
+        df = pd.DataFrame({'Date': dates, 'Duration': durations})
+        fig = px.bar(df, x='Date', y='Duration', title='Sleep Duration Over Time', labels={'Duration': 'Duration (hours)'})
         st.plotly_chart(fig)
     elif data_type == 'Activity':
-        # Adjust this part to correctly process and plot activity data
         dates = [item['dateTime'] for item in fetched_data.get('activities-steps', [])]
         steps = [int(item['value']) for item in fetched_data.get('activities-steps', [])]
-        df_activity = pd.DataFrame({'Date': dates, 'Steps': steps})
-        fig = px.line(df_activity, x='Date', y='Steps', title='Activity Over Time')
+        df = pd.DataFrame({'Date': dates, 'Steps': steps})
+        fig = px.line(df, x='Date', y='Steps', title='Activity Over Time')
         st.plotly_chart(fig)
 
+    # Check if df is defined and not empty
+    if not df.empty:
+        # Proceed with Excel file creation and download functionality
+        to_excel = BytesIO()
+        with pd.ExcelWriter(to_excel, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Sheet1')
+            writer.save()
+        to_excel.seek(0)  # Go to the beginning of the stream
 
-    # Choose the correct DataFrame based on data_type for the Excel download
-    df_to_download = df_sleep if data_type == 'Sleep' else df_activity
-
-    # Generate an Excel file from the DataFrame
-    to_excel = BytesIO()
-    with pd.ExcelWriter(to_excel) as writer:
-        df.to_excel(writer, sheet_name='Sheet1')
-        writer.save()
-    to_excel.seek(0)  # Go to the beginning of the stream
-
-    # Add a download button for the Excel file
-    st.download_button(label="Download Excel file",
-                       data=to_excel,
-                       file_name="fitbit_data.xlsx",
-                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        # Add a download button for the Excel file
+        st.download_button(label="Download Excel file",
+                           data=to_excel,
+                           file_name="fitbit_data.xlsx",
+                           mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    else:
+        st.write("No data to download.")
