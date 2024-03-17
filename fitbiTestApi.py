@@ -66,7 +66,7 @@ selected_label = st.selectbox('Select a Watch:', list(tokens.keys()))
 selected_token = tokens[selected_label]
 
 # Select data type
-data_type = st.radio("Select Data Type:", ['Sleep', 'Activity'])
+data_type = st.radio("Select Data Type:", ['Sleep', 'Activity', 'Sleep Levels', 'Heart Rate'])
 
 # Initialize default start and end dates as today's date, or choose your own defaults
 default_start_date = datetime.date.today() - datetime.timedelta(days=7)  # Example: Default to last 7 days
@@ -97,7 +97,34 @@ if start_date and end_date:
         df = pd.DataFrame({'Date': dates, 'Steps': steps})
         fig = px.line(df, x='Date', y='Steps', title='Activity Over Time')
         st.plotly_chart(fig)
+    elif data_type == 'Sleep Levels':
+        # Example process for a single day; you can expand this logic for a date range
+        sleep_data = fetch_data(selected_token, 'Sleep Levels', start_date_str, end_date_str)
+        sleep_stages_summary = sleep_data['levels']['summary']
+        
+        # Prepare data for visualization
+        stages = ['deep', 'light', 'rem', 'wake']
+        minutes = [sleep_stages_summary[stage]['minutes'] for stage in stages]
+        df_sleep_levels = pd.DataFrame({'Stage': stages, 'Minutes': minutes})
+        
+        # Plot
+        fig = px.bar(df_sleep_levels, x='Stage', y='Minutes', title='Sleep Stages Distribution')
+        st.plotly_chart(fig)  
+    elif data_type == 'Heart Rate':
+        heart_rate_data = fetch_data(selected_token, 'Heart Rate', start_date_str, end_date_str)
+        
+        # Assuming heart_rate_data contains average values per day or specific time slots
+        # You would need to adapt this based on your JSON structure
+        dates = [entry['dateTime'] for entry in heart_rate_data]
+        values = [entry['value']['restingHeartRate'] for entry in heart_rate_data]  # Adapt based on your JSON
+        
+        df_heart_rate = pd.DataFrame({'Date': dates, 'Average Heart Rate': values})
+        
+        # Plot
+        fig = px.line(df_heart_rate, x='Date', y='Average Heart Rate', title='Daily Average Heart Rate')
+        st.plotly_chart(fig)
 
+    
     # Check if df is defined and not empty
     if not df.empty:
         # Proceed with Excel file creation and download functionality
