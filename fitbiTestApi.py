@@ -82,6 +82,8 @@ if len(selected_date_range) == 2:
 else:
     # If not, fall back to the default start and end dates
     start_date, end_date = default_start_date, default_end_date
+    
+df = pd.DataFrame()  # Initialize df as an empty DataFrame
 
 # Ensure you adjust your data processing and plotting according to the corrected data type handling
 if start_date and end_date:
@@ -114,7 +116,7 @@ if start_date and end_date:
                         sleep_stages[stage['level']] += stage['seconds'] / 60  # Convert seconds to minutes
     
             # Prepare the DataFrame for visualization
-            df_sleep_levels = pd.DataFrame(list(sleep_stages.items()), columns=['Stage', 'Minutes'])
+            df = pd.DataFrame(list(sleep_stages.items()), columns=['Stage', 'Minutes'])
     
             # Plotting the data
             fig = px.bar(df_sleep_levels, x='Stage', y='Minutes', title='Distribution of Sleep Stages',
