@@ -3,7 +3,16 @@ import requests
 import pandas as pd
 import plotly.express as px
 
-
+# Function to fetch data
+def fetch_data(access_token, data_type, start_date, end_date):
+    base_url = "https://api.fitbit.com/1.2/user/-/"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    if data_type == 'Sleep':
+        url = f"{base_url}sleep/date/{start_date}/{end_date}.json"
+    else:  # Activity
+        url = f"{base_url}activities/steps/date/{start_date}/{end_date}.json"
+    response = requests.get(url, headers=headers)
+    return response.json()
 
 # Function to fetch sleep data
 def get_sleep_data(access_token):
@@ -58,25 +67,29 @@ start_date, end_date = st.date_input("Select Date Range:", [])
 
 # Fetch and display data if dates are selected
 if start_date and end_date:
-    fetched_data = fetch_data(selected_token, data_type, start_date, end_date)
+    fetched_data = fetch_data(selected_token, data_type, start_date.isoformat(), end_date.isoformat())
     if data_type == 'Sleep':
-        dates = [item['dateTime'] for item in fetched_data['activities-steps']]
-        steps = [int(item['value']) for item in fetched_data['activities-steps']]
-        df = pd.DataFrame({'Date': dates, 'Steps': steps})
-        fig = px.line(df, x='Date', y='Steps', title='Activity Over Time')
+        # Assuming sleep data is properly formatted in fetched_data
+        dates = [item['dateOfSleep'] for item in fetched_data['sleep']]
+        durations = [item['duration']/3600000 for item in fetched_data['sleep']]  # Convert from milliseconds to hours
+        df_sleep = pd.DataFrame({'Date': dates, 'Duration': durations})
+        fig = px.bar(df_sleep, x='Date', y='Duration', title='Sleep Duration Over Time', labels={'Duration': 'Duration (hours)'})
         st.plotly_chart(fig)
     else:
         # Process activity data
-        dates = [item['dateOfSleep'] for item in fetched_data['activities-steps']]
-        duration = [int(item['duration']) for item in fetched_data['activities-steps']]
-        df = pd.DataFrame({'Date': dates, 'sleep': duration})
-        fig = px.line(df, x='Date', y='Steps', title='Activity Over Time')
+        dates = [item['dateTime'] for item in fetched_data['activities-steps']]
+        steps = [int(item['value']) for item in fetched_data['activities-steps']]
+        df_activity = pd.DataFrame({'Date': dates, 'Steps': steps})
+        fig = px.line(df_activity, x='Date', y='Steps', title='Activity Over Time')
         st.plotly_chart(fig)
+
+    # Choose the correct DataFrame based on data_type for the Excel download
+    df_to_download = df_sleep if data_type == 'Sleep' else df_activity
 
     # Generate an Excel file from the DataFrame
     to_excel = BytesIO()
     with pd.ExcelWriter(to_excel, engine='xlsxwriter') as writer:
-        df.to_excel(writer, sheet_name='Sheet1')
+        df_to_download.to_excel(writer, sheet_name='Sheet1')
         writer.save()
     to_excel.seek(0)  # Go to the beginning of the stream
 
@@ -84,4 +97,4 @@ if start_date and end_date:
     st.download_button(label="Download Excel file",
                        data=to_excel,
                        file_name="fitbit_data.xlsx",
-                       mime="application/vnd.ms-excel")
+                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
