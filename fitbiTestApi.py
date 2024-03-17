@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 import plotly.express as px
 from io import BytesIO
+import datetime
 
 # Function to fetch data
 def fetch_data(access_token, data_type, start_date, end_date):
@@ -67,8 +68,19 @@ selected_token = tokens[selected_label]
 # Select data type
 data_type = st.radio("Select Data Type:", ['Sleep', 'Activity'])
 
-# Date range picker
-start_date, end_date = st.date_input("Select Date Range:", [])
+# Initialize default start and end dates as today's date, or choose your own defaults
+default_start_date = datetime.date.today() - datetime.timedelta(days=7)  # Example: Default to last 7 days
+default_end_date = datetime.date.today()
+
+# Use st.date_input to allow users to select a date range. Provide a default range.
+selected_date_range = st.date_input("Select Date Range:", [default_start_date, default_end_date])
+
+# Ensure that two dates are always unpacked by checking the length of selected_date_range
+if len(selected_date_range) == 2:
+    start_date, end_date = selected_date_range
+else:
+    # If not, fall back to the default start and end dates
+    start_date, end_date = default_start_date, default_end_date
 
 # Ensure you adjust your data processing and plotting according to the corrected data type handling
 if start_date and end_date:
