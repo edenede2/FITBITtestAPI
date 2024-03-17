@@ -69,23 +69,24 @@ data_type = st.radio("Select Data Type:", ['Sleep', 'Activity'])
 # Date range picker
 start_date, end_date = st.date_input("Select Date Range:", [])
 
-# Fetch and display data if dates are selected
+# Ensure you adjust your data processing and plotting according to the corrected data type handling
 if start_date and end_date:
     fetched_data = fetch_data(selected_token, data_type, start_date.isoformat(), end_date.isoformat())
     if data_type == 'Sleep':
-        # Assuming sleep data is properly formatted in fetched_data
-        dates = [item['dateOfSleep'] for item in fetched_data['sleep']]
-        durations = [item['duration']/3600000 for item in fetched_data['sleep']]  # Convert from milliseconds to hours
+        # Adjust this part to correctly process and plot sleep data
+        dates = [item['dateOfSleep'] for item in fetched_data.get('sleep', [])]
+        durations = [item['duration']/3600000 for item in fetched_data.get('sleep', [])]  # Convert from milliseconds to hours
         df_sleep = pd.DataFrame({'Date': dates, 'Duration': durations})
         fig = px.bar(df_sleep, x='Date', y='Duration', title='Sleep Duration Over Time', labels={'Duration': 'Duration (hours)'})
         st.plotly_chart(fig)
-    else:
-        # Process activity data
-        dates = [item['dateTime'] for item in fetched_data['activities-steps']]
-        steps = [int(item['value']) for item in fetched_data['activities-steps']]
+    elif data_type == 'Activity':
+        # Adjust this part to correctly process and plot activity data
+        dates = [item['dateTime'] for item in fetched_data.get('activities-steps', [])]
+        steps = [int(item['value']) for item in fetched_data.get('activities-steps', [])]
         df_activity = pd.DataFrame({'Date': dates, 'Steps': steps})
         fig = px.line(df_activity, x='Date', y='Steps', title='Activity Over Time')
         st.plotly_chart(fig)
+
 
     # Choose the correct DataFrame based on data_type for the Excel download
     df_to_download = df_sleep if data_type == 'Sleep' else df_activity
