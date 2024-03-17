@@ -106,8 +106,8 @@ if start_date and end_date:
 
     # Generate an Excel file from the DataFrame
     to_excel = BytesIO()
-    with pd.ExcelWriter(to_excel, engine='xlsxwriter') as writer:
-        df_to_download.to_excel(writer, sheet_name='Sheet1')
+    with pd.ExcelWriter(to_excel) as writer:
+        df.to_excel(writer, sheet_name='Sheet1')
         writer.save()
     to_excel.seek(0)  # Go to the beginning of the stream
 
