@@ -19,7 +19,7 @@ def fetch_data(access_token, data_type, start_date, end_date):
     if response.status_code == 200:
         return response.json()
     else:
-        print(f"Error fetching data: {response.status_code} - {response.text}")
+        st.error(f"Failed to fetch data: {response.status_code}, {response.text}")
         return None
 # Function to fetch sleep data
 def get_sleep_data(access_token):
@@ -91,67 +91,33 @@ df = pd.DataFrame()  # Initialize df as an empty DataFrame
 # Ensure you adjust your data processing and plotting according to the corrected data type handling
 if start_date and end_date:
     fetched_data = fetch_data(selected_token, data_type, start_date.isoformat(), end_date.isoformat())
-    if fetched_data is None:
-        st.error("Failed to fetch data. Please check the console for more details.")
-    elif data_type == 'Sleep':
-        dates = [item['dateOfSleep'] for item in fetched_data.get('sleep', [])]
-        durations = [item['duration']/3600000 for item in fetched_data.get('sleep', [])]  # Convert from milliseconds to hours
-        df = pd.DataFrame({'Date': dates, 'Duration': durations})
-        fig = px.bar(df, x='Date', y='Duration', title='Sleep Duration Over Time', labels={'Duration': 'Duration (hours)'})
-        st.plotly_chart(fig)
-    elif data_type == 'Activity':
-        dates = [item['dateTime'] for item in fetched_data.get('activities-steps', [])]
-        steps = [int(item['value']) for item in fetched_data.get('activities-steps', [])]
-        df = pd.DataFrame({'Date': dates, 'Steps': steps})
-        fig = px.line(df, x='Date', y='Steps', title='Activity Over Time')
-        st.plotly_chart(fig)
-    elif data_type == 'Sleep Levels':
-        sleep_levels_data = fetch_data(selected_token, 'Sleep Levels', start_date.isoformat(), end_date.isoformat())
-        
-        # Safely check if 'sleep' key exists in the response
-        if 'sleep' in sleep_levels_data:
-            # Initialize a dictionary to store aggregated sleep stage durations
-            sleep_stages = {'Light': 0, 'Deep': 0, 'REM': 0, 'Awake': 0}
-    
-            # Loop through each night's data
-            for night in sleep_levels_data['sleep']:
-                for stage in night['levels']['data']:
-                    # Aggregate the durations by sleep stage
-                    if stage['level'] in sleep_stages:
-                        sleep_stages[stage['level']] += stage['seconds'] / 60  # Convert seconds to minutes
-    
-            # Prepare the DataFrame for visualization
-            df = pd.DataFrame(list(sleep_stages.items()), columns=['Stage', 'Minutes'])
-    
-            # Plotting the data
-            fig = px.bar(df, x='Stage', y='Minutes', title='Distribution of Sleep Stages',
-                         labels={'Minutes': 'Minutes Spent'}, color='Stage')
-            st.plotly_chart(fig)
-        else:
-            st.write("No sleep data available for the selected date range.")
-    elif data_type == 'Heart Rate':
-        heart_rate_data = fetch_data(selected_token, 'Heart Rate', start_date.isoformat(), end_date.isoformat())
-        entries = heart_rate_data.get('activities-heart', [])  # Use .get() to avoid KeyError
-    
-        dates = []
-        average_heart_rates = []
-    
-        for entry in entries:
-            date = entry.get('dateTime')
-            value = entry.get('value', {}).get('restingHeartRate')  # Nested .get() for nested dictionaries
-            if date and value:  # Ensure both date and value are not None
-                dates.append(date)
-                average_heart_rates.append(value)
-    
-        if dates and average_heart_rates:  # Check if lists are not empty
-            df_heart_rate = pd.DataFrame({
-                'Date': dates,
-                'Average Heart Rate': average_heart_rates
-            })
-            fig = px.line(df_heart_rate, x='Date', y='Average Heart Rate', title='Daily Average Heart Rate')
-            st.plotly_chart(fig)
-        else:
-            st.write("No heart rate data available for the selected date range.")
+    if fetched_data is None or not fetched_data.get('sleep') and not fetched_data.get('activities-heart'):
+        st.error("No data available for the selected date range.")
+    else:
+        if data_type == 'Sleep' or data_type == 'Sleep Levels':
+            # Assuming fetched_data structure based on your provided sleep data example
+            sleep_data = fetched_data.get('sleep', [])
+            dates = [sd['dateOfSleep'] for sd in sleep_data]
+            durations = [sd['duration']/3600000 for sd in sleep_data]  # Convert milliseconds to hours
+            df_sleep = pd.DataFrame({'Date': dates, 'Duration': durations})
+            if not df_sleep.empty:
+                fig = px.bar(df_sleep, x='Date', y='Duration', title='Sleep Duration Over Time', labels={'Duration': 'Duration (hours)'})
+                st.plotly_chart(fig)
+            else:
+                st.write("No sleep data available for the selected date range.")
+
+        elif data_type == 'Heart Rate':
+            # Processing based on your provided heart rate data example
+            heart_rate_data = fetched_data.get('activities-heart', [])
+            dates = [hr['dateTime'] for hr in heart_rate_data]
+            average_heart_rates = [hr['value'].get('restingHeartRate', 0) for hr in heart_rate_data]
+            df_hr = pd.DataFrame({'Date': dates, 'Average Heart Rate': average_heart_rates})
+            if not df_hr.empty:
+                fig = px.line(df_hr, x='Date', y='Average Heart Rate', title='Daily Average Heart Rate')
+                st.plotly_chart(fig)
+            else:
+                st.write("No heart rate data available for the selected date range.")
+
     
     # Check if df is defined and not empty
     if not df.empty:
