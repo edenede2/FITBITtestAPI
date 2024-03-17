@@ -76,47 +76,40 @@ data_type = st.radio("Select Data Type:", ['Sleep', 'Activity', 'Sleep Levels', 
 default_start_date = datetime.date.today() - datetime.timedelta(days=7)
 default_end_date = datetime.date.today()
 
-# Use st.date_input to allow users to select a date range. Provide a default range.
+# Existing code to select the date range
 selected_date_range = st.date_input("Select Date Range:", [default_start_date, default_end_date])
 
-# Ensure that two dates are always unpacked by checking the length of selected_date_range
+# Validate selected date range
 if len(selected_date_range) == 2:
     start_date, end_date = selected_date_range
-else:
-    # If not, fall back to the default start and end dates
-    start_date, end_date = default_start_date, default_end_date
+    if start_date <= end_date:
+        fetched_data = fetch_data(selected_token, data_type, start_date.isoformat(), end_date.isoformat())
+        if not fetched_data:
+            st.write("Failed to fetch data or no data available for the selected range.")
+        else:
+            if data_type == 'Sleep' or data_type == 'Sleep Levels':
+                # Assuming fetched_data structure based on your provided sleep data example
+                sleep_data = fetched_data.get('sleep', [])
+                dates = [sd['dateOfSleep'] for sd in sleep_data]
+                durations = [sd['duration']/3600000 for sd in sleep_data]  # Convert milliseconds to hours
+                df_sleep = pd.DataFrame({'Date': dates, 'Duration': durations})
+                if not df_sleep.empty:
+                    fig = px.bar(df_sleep, x='Date', y='Duration', title='Sleep Duration Over Time', labels={'Duration': 'Duration (hours)'})
+                    st.plotly_chart(fig)
+                else:
+                    st.write("No sleep data available for the selected date range.")
     
-df = pd.DataFrame()  # Initialize df as an empty DataFrame
-
-# Ensure you adjust your data processing and plotting according to the corrected data type handling
-if start_date and end_date:
-    fetched_data = fetch_data(selected_token, data_type, start_date.isoformat(), end_date.isoformat())
-    if fetched_data is None or not fetched_data.get('sleep') and not fetched_data.get('activities-heart'):
-        st.error("No data available for the selected date range.")
-    else:
-        if data_type == 'Sleep' or data_type == 'Sleep Levels':
-            # Assuming fetched_data structure based on your provided sleep data example
-            sleep_data = fetched_data.get('sleep', [])
-            dates = [sd['dateOfSleep'] for sd in sleep_data]
-            durations = [sd['duration']/3600000 for sd in sleep_data]  # Convert milliseconds to hours
-            df_sleep = pd.DataFrame({'Date': dates, 'Duration': durations})
-            if not df_sleep.empty:
-                fig = px.bar(df_sleep, x='Date', y='Duration', title='Sleep Duration Over Time', labels={'Duration': 'Duration (hours)'})
-                st.plotly_chart(fig)
-            else:
-                st.write("No sleep data available for the selected date range.")
-
-        elif data_type == 'Heart Rate':
-            # Processing based on your provided heart rate data example
-            heart_rate_data = fetched_data.get('activities-heart', [])
-            dates = [hr['dateTime'] for hr in heart_rate_data]
-            average_heart_rates = [hr['value'].get('restingHeartRate', 0) for hr in heart_rate_data]
-            df_hr = pd.DataFrame({'Date': dates, 'Average Heart Rate': average_heart_rates})
-            if not df_hr.empty:
-                fig = px.line(df_hr, x='Date', y='Average Heart Rate', title='Daily Average Heart Rate')
-                st.plotly_chart(fig)
-            else:
-                st.write("No heart rate data available for the selected date range.")
+            elif data_type == 'Heart Rate':
+                # Processing based on your provided heart rate data example
+                heart_rate_data = fetched_data.get('activities-heart', [])
+                dates = [hr['dateTime'] for hr in heart_rate_data]
+                average_heart_rates = [hr['value'].get('restingHeartRate', 0) for hr in heart_rate_data]
+                df_hr = pd.DataFrame({'Date': dates, 'Average Heart Rate': average_heart_rates})
+                if not df_hr.empty:
+                    fig = px.line(df_hr, x='Date', y='Average Heart Rate', title='Daily Average Heart Rate')
+                    st.plotly_chart(fig)
+                else:
+                    st.write("No heart rate data available for the selected date range.")
 
     
     # Check if df is defined and not empty
