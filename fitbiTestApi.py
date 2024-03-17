@@ -12,12 +12,15 @@ def fetch_data(access_token, data_type, start_date, end_date):
     url_dict = {
         'Sleep': f"{base_url}sleep/date/{start_date}/{end_date}.json",
         'Activity': f"{base_url}activities/steps/date/{start_date}/{end_date}.json",
-        'Sleep Levels': f"{base_url}sleep/date/{start_date}/{end_date}.json",  # Assuming similar endpoint
-        'Heart Rate': f"{base_url}activities/heart/date/{start_date}/{end_date}.json"  # Adjust as per actual endpoint
+        'Sleep Levels': f"{base_url}sleep/date/{start_date}/{end_date}.json",
+        'Heart Rate': f"{base_url}activities/heart/date/{start_date}/{end_date}.json"
     }
     response = requests.get(url_dict[data_type], headers=headers)
-    return response.json()
-
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(f"Error fetching data: {response.status_code} - {response.text}")
+        return None
 # Function to fetch sleep data
 def get_sleep_data(access_token):
     url = "https://api.fitbit.com/1.2/user/-/sleep/date/2024-03-17.json"
