@@ -8,7 +8,7 @@ from datetime import time
 from datetime import datetime, timedelta
 
 # Consolidated Function to Fetch Data
-def fetch_data(access_token, data_type, start_date, end_date, start_time, end_time, **kwargs):
+def fetch_data(access_token, data_type, start_date, end_date, start_time, end_time):
     base_url = "https://api.fitbit.com/1.2/user/-/"
     headers = {"Authorization": f"Bearer {access_token}"}
     url_dict = {
