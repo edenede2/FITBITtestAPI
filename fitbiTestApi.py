@@ -168,7 +168,7 @@ if len(selected_date_range) == 2:
 
                 for daily_data in hrv_daily_summary:
                     date = daily_data['dateTime']
-                    rmssd_values = [minute['value']['rmssd'] for minute in daily_data.get('minutes', []) if 'value' in minute and 'rmssd' in minute['value']]
+                    rmssd_values = [measure['value']['dailyRmssd'] for measure in daily_data.get('value', [])]
                     
                     if rmssd_values:  # Ensure there are RMSSD values to calculate an average
                         average_rmssd = sum(rmssd_values) / len(rmssd_values)
