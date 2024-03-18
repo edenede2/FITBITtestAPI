@@ -17,7 +17,8 @@ def fetch_data(access_token, data_type, start_date, end_date, start_time, end_ti
         'Steps Intraday': f"{base_url}activities/steps/date/{start_date}/1d/1min/time/{start_time}/{end_time}.json",
         'Sleep Levels': f"{base_url}sleep/date/{start_date}/{end_date}.json",
         'Heart Rate': f"{base_url}activities/heart/date/{start_date}/1d/1sec/time/{start_time}/{end_time}.json",
-        'HRV Intraday': f"{base_url}hrv/date/{start_date}/all.json"
+        'HRV Intraday by Date': f"{base_url}hrv/date/{start_date}/all.json",
+        'daily RMSSD': f"{base_url}hrv/date/{start_date}.json"
     }
     response = requests.get(url_dict[data_type], headers=headers)
     if response.status_code == 200:
@@ -51,7 +52,7 @@ selected_label = st.selectbox('Select a Watch:', list(tokens.keys()))
 selected_token = tokens[selected_label]
 
 # Select data type
-data_type = st.radio("Select Data Type:", ['Sleep', 'Steps', 'Steps Intraday', 'Sleep Levels', 'Heart Rate', 'HRV Intraday'])
+data_type = st.radio("Select Data Type:", ['Sleep', 'Steps', 'Steps Intraday', 'Sleep Levels', 'Heart Rate','Daily RMSSD', 'HRV Intraday by Date'])
 
 # Initialize default start and end dates as today's date, or choose your own defaults
 default_start_date = datetime.today() - timedelta(days=7)
@@ -143,26 +144,31 @@ if len(selected_date_range) == 2:
                 else:
                     st.write("No heart rate data found.") 
 
-            elif data_type == 'HRV Intraday':
-                hrv_intraday_data = fetched_data.get('hrv', [])
-                dates = []
-                rmssd_values = []
+            elif data_type == 'HRV Intraday by Date':
+                hrv_intraday_data = fetched_data.get('hrv', [])[0].get('minutes', [])  # Assuming we're interested in the first entry
+                times = [entry['minute'] for entry in hrv_intraday_data]
+                rmssd_values = [entry['value']['rmssd'] for entry in hrv_intraday_data]
 
-                for day_data in hrv_intraday_data:
-                    for minute_data in day_data.get('minutes', []):
-                        minute = minute_data.get('minute')
-                        rmssd = minute_data.get('value', {}).get('rmssd', 0)  # Safely access 'rmssd'
-                        if minute and rmssd:
-                            dates.append(minute)
-                            rmssd_values.append(rmssd)
-                
-                if dates and rmssd_values:  # Ensure data was collected
-                    df = pd.DataFrame({'Date': dates, 'RMSSD': rmssd_values})
-                    fig = px.line(df, x='Date', y='RMSSD', title='HRV RMSSD Over Time')
+                if times and rmssd_values:  # Ensure both lists have data
+                    df_hrv = pd.DataFrame({
+                        'Time': times,
+                        'RMSSD': rmssd_values
+                    })
+                    fig = px.line(df_hrv, x='Time', y='RMSSD', title='HRV RMSSD Intraday Variation')
                     st.plotly_chart(fig)
                 else:
-                    st.write("No HRV data available for selected date range.")
-    # Check if df is defined and not empty
+                    st.write("No HRV intraday data available for the selected date range.")
+            elif data_type == 'daily RMSSD':
+                daily_hrv_data = fetched_data.get('hrv', [])[0].get('minutes', [])  # Assuming we're interested in the first entry
+                # Calculate average RMSSD for the day
+                if daily_hrv_data:
+                    average_rmssd = sum(entry['value']['rmssd'] for entry in daily_hrv_data) / len(daily_hrv_data)
+                    st.write(f"Average daily RMSSD for {daily_hrv_data[0]['minute'][:10]}: {average_rmssd:.2f}")
+                else:
+                    st.write("No daily HRV data available for the selected date range.")
+        
+        
+        # Check if df is defined and not empty
     if not df.empty:
         # Proceed with Excel file creation and download functionality
         to_excel = BytesIO()
