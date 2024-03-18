@@ -15,7 +15,7 @@ def fetch_data(access_token, data_type, start_date, end_date, start_time, end_ti
         'Activity': f"{base_url}activities/steps/date/{start_date}/{end_date}.json",
         'Sleep Levels': f"{base_url}sleep/date/{start_date}/{end_date}.json",
         'Heart Rate': f"{base_url}activities/heart/date/{start_date}/1d/1sec/time/{start_time}/{end_time}.json",
-        'HRV Intraday': f"{base_url}hrv/date/{start_date}/{end_date}/all.json"
+        'HRV Intraday': f"{base_url}hrv/date/{start_date}/all.json"
     }
     response = requests.get(url_dict[data_type], headers=headers)
     if response.status_code == 200:
@@ -116,7 +116,7 @@ if len(selected_date_range) == 2:
                         st.write("No intraday heart rate data available for the selected date range.")
                 else:
                     st.write("No heart rate data found.") 
-                    
+
             elif data_type == 'HRV Intraday':
                 # Assuming 'fetched_data' contains the HRV data structure as you've shown
                 hrv_intraday_data = fetched_data.get('hrv', [])
