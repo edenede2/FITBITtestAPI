@@ -159,14 +159,25 @@ if len(selected_date_range) == 2:
                 else:
                     st.write("No HRV intraday data available for the selected date range.")
             elif data_type == 'daily RMSSD':
-                daily_hrv_data = fetched_data.get('hrv', [])[0].get('minutes', [])  # Assuming we're interested in the first entry
-                # Calculate average RMSSD for the day
-                if daily_hrv_data:
-                    average_rmssd = sum(entry['value']['rmssd'] for entry in daily_hrv_data) / len(daily_hrv_data)
-                    st.write(f"Average daily RMSSD for {daily_hrv_data[0]['minute'][:10]}: {average_rmssd:.2f}")
+                hrv_daily_summary = fetched_data.get('hrv', [])
+                dates = []
+                average_rmssd_values = []
+
+                for daily_data in hrv_daily_summary:
+                    date = daily_data['dateTime']
+                    rmssd_values = [minute['value']['rmssd'] for minute in daily_data.get('minutes', []) if 'value' in minute and 'rmssd' in minute['value']]
+                    
+                    if rmssd_values:  # Ensure there are RMSSD values to calculate an average
+                        average_rmssd = sum(rmssd_values) / len(rmssd_values)
+                        dates.append(date)
+                        average_rmssd_values.append(average_rmssd)
+
+                if dates and average_rmssd_values:
+                    df = pd.DataFrame({"Date": dates, "Average RMSSD": average_rmssd_values})
+                    fig = px.bar(df, x="Date", y="Average RMSSD", title="Daily Average RMSSD Summary")
+                    st.plotly_chart(fig)
                 else:
-                    st.write("No daily HRV data available for the selected date range.")
-        
+                    st.write("No daily RMSSD data available for the selected date range.")        
         
         # Check if df is defined and not empty
     if not df.empty:
