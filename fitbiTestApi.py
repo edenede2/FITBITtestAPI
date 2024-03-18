@@ -6,14 +6,16 @@ from io import BytesIO
 import datetime
 
 # Consolidated Function to Fetch Data
-def fetch_data(access_token, data_type, start_date, end_date):
+def fetch_data(access_token, data_type, start_date, end_date, start_time, end_time):
     base_url = "https://api.fitbit.com/1.2/user/-/"
     headers = {"Authorization": f"Bearer {access_token}"}
     url_dict = {
         'Sleep': f"{base_url}sleep/date/{start_date}/{end_date}.json",
         'Activity': f"{base_url}activities/steps/date/{start_date}/{end_date}.json",
         'Sleep Levels': f"{base_url}sleep/date/{start_date}/{end_date}.json",
-        'Heart Rate': f"{base_url}activities/heart/date/{start_date}/{end_date}.json"
+        'Heart Rate': f"{base_url}activities/heart/date/{start_date}/1d/1sec/time/{start_time}/{end_time}.json",
+        'HRV Intraday': f"{base_url}hrv/date/{start_date}/{end_date}/all.json
+"
     }
     response = requests.get(url_dict[data_type], headers=headers)
     if response.status_code == 200:
@@ -47,11 +49,17 @@ selected_label = st.selectbox('Select a Watch:', list(tokens.keys()))
 selected_token = tokens[selected_label]
 
 # Select data type
-data_type = st.radio("Select Data Type:", ['Sleep', 'Activity', 'Sleep Levels', 'Heart Rate'])
+data_type = st.radio("Select Data Type:", ['Sleep', 'Activity', 'Sleep Levels', 'Heart Rate', 'HRV Intraday'])
 
 # Initialize default start and end dates as today's date, or choose your own defaults
 default_start_date = datetime.date.today() - datetime.timedelta(days=7)
 default_end_date = datetime.date.today()
+
+start_time = st.time_input('Select Start Time', value=time(9, 00))
+end_time = st.time_input('Select End Time', value=time(18, 00))
+
+st.write(f'Selected Start Time: {start_time.strftime("%H:%M")}')
+st.write(f'Selected End Time: {end_time.strftime("%H:%M")}')
 
 # Existing code to select the date range
 selected_date_range = st.date_input("Select Date Range:", [default_start_date, default_end_date])
@@ -88,6 +96,18 @@ if len(selected_date_range) == 2:
                     st.plotly_chart(fig)
                 else:
                     st.write("No heart rate data available for the selected date range.")
+            
+            elif data_type == 'HRV Intraday':
+                # Processing based on your provided heart rate data example
+                hrv_intraday_data = fetch_data.get('hrv', [])
+                dates = [hr['minutes'].get('minute',0) for hr in hrv_intraday_data]
+                hrv_value = [hr['minutes']['value'].get('rmssd',0) for hr in hrv_intraday_data]
+                df = pd.DataFrame({'date': dates, 'RMSSD': hrv_value})
+                if not df.empty:
+                    fig = px.line(df, x='date', y='RMSSD', title='Daily RMSSD')
+                    st.plotly_chart(fig)
+                else:
+                    st.write("No HRV data available for selected date range.")
 
     
     # Check if df is defined and not empty
