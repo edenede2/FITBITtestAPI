@@ -12,7 +12,8 @@ def fetch_data(access_token, data_type, start_date, end_date, start_time, end_ti
     headers = {"Authorization": f"Bearer {access_token}"}
     url_dict = {
         'Sleep': f"{base_url}sleep/date/{start_date}/{end_date}.json",
-        'Activity': f"{base_url}activities/steps/date/{start_date}/{end_date}.json",
+        'Steps': f"{base_url}activities/steps/date/{start_date}/{end_date}.json",
+        'Steps Intraday': f"{base_url}activities/steps/date/{start_date}/1d/1min/time/{start_time}/{end_time}.json",
         'Sleep Levels': f"{base_url}sleep/date/{start_date}/{end_date}.json",
         'Heart Rate': f"{base_url}activities/heart/date/{start_date}/1d/1sec/time/{start_time}/{end_time}.json",
         'HRV Intraday': f"{base_url}hrv/date/{start_date}/all.json"
@@ -49,7 +50,7 @@ selected_label = st.selectbox('Select a Watch:', list(tokens.keys()))
 selected_token = tokens[selected_label]
 
 # Select data type
-data_type = st.radio("Select Data Type:", ['Sleep', 'Activity', 'Sleep Levels', 'Heart Rate', 'HRV Intraday'])
+data_type = st.radio("Select Data Type:", ['Sleep', 'Steps', 'Steps Intraday', 'Sleep Levels', 'Heart Rate', 'HRV Intraday'])
 
 # Initialize default start and end dates as today's date, or choose your own defaults
 default_start_date = datetime.date.today() - datetime.timedelta(days=7)
@@ -85,6 +86,30 @@ if len(selected_date_range) == 2:
                 else:
                     st.write("No sleep data available for the selected date range.")
     
+            elif data_type == 'Steps':
+                steps_summary = fetched_data.get("activities-steps", [])
+                dates = [entry["dateTime"] for entry in steps_summary]
+                steps = [int(entry["value"]) for entry in steps_summary]
+
+                df = pd.DataFrame({"Date": dates, "Steps": steps})
+                if not df.empty:
+                    fig = px.bar(df, x="Date", y="Steps", title="Daily Steps Summary")
+                    st.plotly_chart(fig)
+                else:
+                    st.write("No daily steps data available for the selected date range.")
+
+            elif data_type == 'Steps Intraday':
+                steps_intraday = fetched_data.get("activities-steps-intraday", {}).get("dataset", [])
+                times = [datetime.strptime(entry["time"], "%H:%M:%S").time() for entry in steps_intraday]
+                steps = [entry["value"] for entry in steps_intraday]
+
+                df = pd.DataFrame({"Time": times, "Steps": steps})
+                if not df.empty:
+                    fig_intraday = px.line(df, x="Time", y="Steps", title="Intraday Steps (1-minute interval)")
+                    st.plotly_chart(fig_intraday)
+                else:
+                    st.write("No intraday steps data available for the selected time range.")
+
             elif data_type == 'Heart Rate':
                 # Access the 'activities-heart-intraday' section directly
                 intraday_data = fetched_data.get('activities-heart-intraday', {}).get('dataset', [])
@@ -118,7 +143,6 @@ if len(selected_date_range) == 2:
                     st.write("No heart rate data found.") 
 
             elif data_type == 'HRV Intraday':
-                # Assuming 'fetched_data' contains the HRV data structure as you've shown
                 hrv_intraday_data = fetched_data.get('hrv', [])
                 dates = []
                 rmssd_values = []
