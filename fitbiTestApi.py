@@ -47,7 +47,7 @@ selected_label = st.selectbox('Select a Watch:', list(tokens.keys()))
 selected_token = tokens[selected_label]
 
 # Select data type
-data_type = st.("Select Data Type:", ['Sleep', 'Activity', 'Sleep Levels', 'Heart Rate'])
+data_type = st.radio("Select Data Type:", ['Sleep', 'Activity', 'Sleep Levels', 'Heart Rate'])
 
 # Initialize default start and end dates as today's date, or choose your own defaults
 default_start_date = datetime.date.today() - datetime.timedelta(days=7)
@@ -65,7 +65,7 @@ if len(selected_date_range) == 2:
         if not fetched_data:
             st.write("Failed to fetch data or no data available for the selected range.")
         else:
-            if data_type == 'Sleep' or data_type == 'Sleep Levels':
+            if data_type == 'Sleep':
                 # Assuming fetched_data structure based on your provided sleep data example
                 sleep_data = fetched_data.get('sleep', [])
                 dates = [sd['dateOfSleep'] for sd in sleep_data]
