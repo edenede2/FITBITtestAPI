@@ -86,29 +86,36 @@ if len(selected_date_range) == 2:
                     st.write("No sleep data available for the selected date range.")
     
             elif data_type == 'Heart Rate':
-                # Processing based on your provided heart rate data example
-                heart_rate_data = fetched_data.get('activities-heart-intraday', [])
-                dates = []
-                average_heart_rates = []
-                for hr in heart_rate_data:
-                    if 'dataset' in hr and isinstance(hr['dataset'],dict):
-                        if 'value' in hr['dataset']:
-                            date = hr['time']
-                            avg_heart_rate = hr['dataset']['value']
-                            dates.append(date)
-                            average_heart_rates.append(avg_heart_rate)
+                # Access the 'activities-heart-intraday' section directly
+                intraday_data = fetched_data.get('activities-heart-intraday', {}).get('dataset', [])
+                times = []
+                heart_rates = []
 
-                if dates and average_heart_rates:
-                    df = pd.DataFarame({
-                        'Date': dates,
-                        'Average_Heart_Rate': average_heart_rates
+                # Iterate through the 'dataset' list
+                for data_point in intraday_data:
+                    if 'time' in data_point and 'value' in data_point:
+                        time = data_point['time']
+                        heart_rate = data_point['value']
+                        times.append(time)
+                        heart_rates.append(heart_rate)
+
+                if times and heart_rates:
+                    # Assuming 'dates' contains the date(s) for these intraday data points
+                    # You might need to adjust how 'Date' is determined based on your requirements
+                    df = pd.DataFrame({
+                        'Time': times,
+                        'Heart Rate': heart_rates
                     })
-                if not df.empty:
-                    fig = px.line(df, x='Date', y='Average Heart Rate', title='Daily Average Heart Rate')
-                    st.plotly_chart(fig)
+
+                    # Check and correct DataFrame typo
+                    if not df.empty:
+                        # Adjust the plotting to reflect that it's intraday data (time vs. heart rate)
+                        fig = px.line(df, x='Time', y='Heart Rate', title='Intraday Heart Rate')
+                        st.plotly_chart(fig)
+                    else:
+                        st.write("No intraday heart rate data available for the selected date range.")
                 else:
-                    st.write("No heart rate data available for the selected date range.")
-            
+                    st.write("No heart rate data found.") 
             elif data_type == 'HRV Intraday':
                 # Processing based on your provided heart rate data example
                 hrv_intraday_data = fetch_data.get('hrv', [])
