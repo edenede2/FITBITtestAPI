@@ -90,7 +90,11 @@ if len(selected_date_range) == 2:
                 heart_rate_data = fetched_data.get('activities-heart', [])
                 dates = [hr['dateTime'] for hr in heart_rate_data]
                 average_heart_rates = [hr['value']['restingHeartRate'] for hr in heart_rate_data]
-                df = pd.DataFrame({'Date': dates, 'Average Heart Rate': average_heart_rates})
+                if dates and average_heart_rates:
+                    df = pd.DataFarame({
+                        'Date': dates,
+                        'Average_Heart_Rate': average_heart_rates
+                    })
                 if not df.empty:
                     fig = px.line(df, x='Date', y='Average Heart Rate', title='Daily Average Heart Rate')
                     st.plotly_chart(fig)
