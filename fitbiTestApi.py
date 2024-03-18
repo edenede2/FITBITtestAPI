@@ -17,8 +17,8 @@ def fetch_data(access_token, data_type, start_date, end_date, start_time, end_ti
         'Steps Intraday': f"{base_url}activities/steps/date/{start_date}/1d/1min/time/{start_time}/{end_time}.json",
         'Sleep Levels': f"{base_url}sleep/date/{start_date}/{end_date}.json",
         'Heart Rate': f"{base_url}activities/heart/date/{start_date}/1d/1sec/time/{start_time}/{end_time}.json",
-        'HRV Intraday by Date': f"{base_url}hrv/date/{start_date}/all.json",
-        'Daily RMSSD': f"{base_url}hrv/date/{start_date}/all.json"
+        'HRV Intraday by Date': f"{base_url}hrv/date/{pd.to_datetime(start_date)}/all.json",
+        'Daily RMSSD': f"{base_url}hrv/date/{pd.to_datetime(start_date)}/all.json"
     }
     response = requests.get(url_dict[data_type], headers=headers)
     if response.status_code == 200:
