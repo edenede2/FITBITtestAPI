@@ -69,7 +69,7 @@ df = pd.DataFrame()
 if len(selected_date_range) == 2:
     start_date, end_date = selected_date_range
     if start_date <= end_date:
-        fetched_data = fetch_data(selected_token, data_type, start_date.isoformat(), end_date.isoformat())
+        fetched_data = fetch_data(selected_token, data_type, start_date.isoformat(), end_date.isoformat(),start_time, end_time)
         if not fetched_data:
             st.write("Failed to fetch data or no data available for the selected range.")
         else:
