@@ -56,7 +56,7 @@ selected_label = st.selectbox('Select a Watch:', list(tokens.keys()))
 selected_token = tokens[selected_label]
 
 # Select data type
-data_type = st.radio("Select Data Type:", ['Sleep', 'Steps', 'Steps Intraday', 'Sleep Levels', 'Heart Rate','Daily RMSSD', 'HRV Intraday by Interval'])
+data_type = st.radio("Select Data Type:", ['Sleep', 'Steps', 'Steps Intraday', 'Sleep Levels', 'Heart Rate','Daily RMSSD', 'HRV Intraday by Interval', 'ECG'])
 
 # Initialize default start and end dates as today's date, or choose your own defaults
 default_start_date = datetime.today() - timedelta(days=7)
