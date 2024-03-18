@@ -8,7 +8,7 @@ from datetime import time
 from datetime import datetime, timedelta
 
 # Consolidated Function to Fetch Data
-def fetch_data(access_token, data_type, start_date, end_date, start_time, end_time):
+def fetch_data(access_token, data_type, start_date, end_date, start_time, end_time, **kwargs):
     base_url = "https://api.fitbit.com/1.2/user/-/"
     headers = {"Authorization": f"Bearer {access_token}"}
     url_dict = {
@@ -18,8 +18,19 @@ def fetch_data(access_token, data_type, start_date, end_date, start_time, end_ti
         'Sleep Levels': f"{base_url}sleep/date/{start_date}/{end_date}.json",
         'Heart Rate': f"{base_url}activities/heart/date/{start_date}/1d/1sec/time/{start_time}/{end_time}.json",
         'HRV Intraday by Date': f"{base_url}hrv/intraday/date/{start_date}.json",
-        'Daily RMSSD': f"{base_url}hrv/daily-rmssd/date/{start_date}.json"
+        'Daily RMSSD': f"{base_url}hrv/daily-rmssd/date/{start_date}.json",
+        'ECG': f'{base_url}ecg/list.json?afterDate=2022-09-28&sort=asc&limit=1&offset=0'
     }
+    
+    if data_type == 'ECG':
+        # Build the ECG-specific URL using kwargs
+        after_date = kwargs.get('afterDate', '2022-09-28')
+        sort = kwargs.get('sort', 'asc')
+        limit = kwargs.get('limit', 1)
+        offset = kwargs.get('offset', 0)
+        url_dict['ECG'] = f"{base_url}ecg/list.json?afterDate={after_date}&sort={sort}&limit={limit}&offset={offset}"
+    
+    
     response = requests.get(url_dict[data_type], headers=headers)
     if response.status_code == 200:
         return response.json()
@@ -178,8 +189,30 @@ if len(selected_date_range) == 2:
                     st.plotly_chart(fig)
                 else:
                     st.write("No daily RMSSD data available for the selected date range.")        
-        
-        # Check if df is defined and not empty
+            # Processing and visualizing ECG data
+            elif data_type == 'ECG':
+                ecg_readings = fetched_data.get('ecgReadings', [])
+                if ecg_readings:
+                    # Example: Focus on the first reading for simplicity
+                    reading = ecg_readings[0]
+                    average_hr = reading['averageHeartRate']
+                    waveform_samples = reading['waveformSamples']
+                    sampling_frequency = reading['samplingFrequencyHz']
+
+                    # Display average heart rate
+                    st.write(f"Average Heart Rate: {average_hr} bpm")
+
+                    # Visualizing a subset of the ECG waveform
+                    # Note: Adjust the visualization based on your needs and the number of samples
+                    waveform_df = pd.DataFrame({
+                        'Sample Number': range(len(waveform_samples)),
+                        'Amplitude': waveform_samples
+                    })
+                    fig = px.line(waveform_df, x='Sample Number', y='Amplitude', title='ECG Waveform')
+                    st.plotly_chart(fig)
+                else:
+                    st.write("No ECG data available for the selected range.")
+                    # Check if df is defined and not empty
     if not df.empty:
         # Proceed with Excel file creation and download functionality
         to_excel = BytesIO()
