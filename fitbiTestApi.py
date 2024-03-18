@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 # Consolidated Function to Fetch Data
 def fetch_data(access_token, data_type, start_date, end_date, start_time, end_time):
     base_url = "https://api.fitbit.com/1.2/user/-/"
+    base_urll = "https://api.fitbit.com/1/user/-/"
     headers = {"Authorization": f"Bearer {access_token}"}
     url_dict = {
         'Sleep': f"{base_url}sleep/date/{start_date}/{end_date}.json",
@@ -18,7 +19,7 @@ def fetch_data(access_token, data_type, start_date, end_date, start_time, end_ti
         'Sleep Levels': f"{base_url}sleep/date/{start_date}/{end_date}.json",
         'Heart Rate': f"{base_url}activities/heart/date/{start_date}/1d/1sec/time/{start_time}/{end_time}.json",
         'HRV Intraday by Interval': f"{base_url}hrv/date/{start_date}/{end_date}/all.json",
-        'Daily RMSSD': f"{base_url}hrv/date/2024-03-16.json",
+        'Daily RMSSD': f"{base_urll}hrv/date/{start_date}/all.json",
         'ECG': f'{base_url}ecg/list.json?afterDate=2022-09-28&sort=asc&limit=1&offset=0'
     }
     
