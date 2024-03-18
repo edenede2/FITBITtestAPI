@@ -116,19 +116,27 @@ if len(selected_date_range) == 2:
                         st.write("No intraday heart rate data available for the selected date range.")
                 else:
                     st.write("No heart rate data found.") 
+                    
             elif data_type == 'HRV Intraday':
-                # Processing based on your provided heart rate data example
-                hrv_intraday_data = fetch_data.get('hrv', [])
-                dates = [hr['minutes'].get('minute',0) for hr in hrv_intraday_data]
-                hrv_value = [hr['minutes']['value'].get('rmssd',0) for hr in hrv_intraday_data]
-                df = pd.DataFrame({'date': dates, 'RMSSD': hrv_value})
-                if not df.empty:
-                    fig = px.line(df, x='date', y='RMSSD', title='Daily RMSSD')
+                # Assuming 'fetched_data' contains the HRV data structure as you've shown
+                hrv_intraday_data = fetched_data.get('hrv', [])
+                dates = []
+                rmssd_values = []
+
+                for day_data in hrv_intraday_data:
+                    for minute_data in day_data.get('minutes', []):
+                        minute = minute_data.get('minute')
+                        rmssd = minute_data.get('value', {}).get('rmssd', 0)  # Safely access 'rmssd'
+                        if minute and rmssd:
+                            dates.append(minute)
+                            rmssd_values.append(rmssd)
+                
+                if dates and rmssd_values:  # Ensure data was collected
+                    df = pd.DataFrame({'Date': dates, 'RMSSD': rmssd_values})
+                    fig = px.line(df, x='Date', y='RMSSD', title='HRV RMSSD Over Time')
                     st.plotly_chart(fig)
                 else:
                     st.write("No HRV data available for selected date range.")
-
-    
     # Check if df is defined and not empty
     if not df.empty:
         # Proceed with Excel file creation and download functionality
