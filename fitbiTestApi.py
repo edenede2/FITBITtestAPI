@@ -17,18 +17,10 @@ def fetch_data(access_token, data_type, start_date, end_date, start_time, end_ti
         'Steps Intraday': f"{base_url}activities/steps/date/{start_date}/1d/1min/time/{start_time}/{end_time}.json",
         'Sleep Levels': f"{base_url}sleep/date/{start_date}/{end_date}.json",
         'Heart Rate': f"{base_url}activities/heart/date/{start_date}/1d/1sec/time/{start_time}/{end_time}.json",
-        'HRV Intraday by Date': f"{base_url}hrv/intraday/date/{start_date}.json",
-        'Daily RMSSD': f"{base_url}hrv/daily-rmssd/date/{start_date}.json",
+        'HRV Intraday by Interval': f"{base_url}hrv/date/{start_date}/{end_date}/all.json",
+        'Daily RMSSD': f"{base_url}hrv/date/2024-03-18.json",
         'ECG': f'{base_url}ecg/list.json?afterDate=2022-09-28&sort=asc&limit=1&offset=0'
     }
-    
-    if data_type == 'ECG':
-        # Build the ECG-specific URL using kwargs
-        after_date = kwargs.get('afterDate', '2022-09-28')
-        sort = kwargs.get('sort', 'asc')
-        limit = kwargs.get('limit', 1)
-        offset = kwargs.get('offset', 0)
-        url_dict['ECG'] = f"{base_url}ecg/list.json?afterDate={after_date}&sort={sort}&limit={limit}&offset={offset}"
     
     
     response = requests.get(url_dict[data_type], headers=headers)
@@ -63,7 +55,7 @@ selected_label = st.selectbox('Select a Watch:', list(tokens.keys()))
 selected_token = tokens[selected_label]
 
 # Select data type
-data_type = st.radio("Select Data Type:", ['Sleep', 'Steps', 'Steps Intraday', 'Sleep Levels', 'Heart Rate','Daily RMSSD', 'HRV Intraday by Date', 'ECG'])
+data_type = st.radio("Select Data Type:", ['Sleep', 'Steps', 'Steps Intraday', 'Sleep Levels', 'Heart Rate','Daily RMSSD', 'HRV Intraday by Interval'])
 
 # Initialize default start and end dates as today's date, or choose your own defaults
 default_start_date = datetime.today() - timedelta(days=7)
@@ -83,7 +75,7 @@ df = pd.DataFrame()
 if len(selected_date_range) == 2:
     start_date, end_date = selected_date_range
     if start_date <= end_date:
-        fetched_data = fetch_data(selected_token, data_type, start_date.isoformat(), end_date.isoformat(),start_time, end_time)
+        fetched_data = fetch_data(selected_token, data_type, start_date.isoformat(), end_date.isoformat(),start_time, end_time, **kwargs)
         if not fetched_data:
             st.write("Failed to fetch data or no data available for the selected range.")
         else:
@@ -155,7 +147,7 @@ if len(selected_date_range) == 2:
                 else:
                     st.write("No heart rate data found.") 
 
-            elif data_type == 'HRV Intraday by Date':
+            elif data_type == 'HRV Intraday by Interval':
                 hrv_intraday_data = fetched_data.get('hrv', [])[0].get('minutes', [])  # Assuming we're interested in the first entry
                 times = [entry['minute'] for entry in hrv_intraday_data]
                 rmssd_values = [entry['value']['rmssd'] for entry in hrv_intraday_data]
