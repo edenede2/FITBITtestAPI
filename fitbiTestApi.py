@@ -54,7 +54,7 @@ selected_token = tokens[selected_label]
 data_type = st.radio("Select Data Type:", ['Sleep', 'Steps', 'Steps Intraday', 'Sleep Levels', 'Heart Rate', 'HRV Intraday'])
 
 # Initialize default start and end dates as today's date, or choose your own defaults
-default_start_date = datetime.today() - datetime.timedelta(days=7)
+default_start_date = datetime.today() - timedelta(days=7)
 default_end_date = datetime.today()
 
 start_time = st.time_input('Select Start Time', value=time(9, 00))
