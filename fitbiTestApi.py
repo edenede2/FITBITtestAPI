@@ -87,17 +87,17 @@ if len(selected_date_range) == 2:
     
             elif data_type == 'Heart Rate':
                 # Processing based on your provided heart rate data example
-                heart_rate_data = fetched_data.get('activities-heart', [])
+                heart_rate_data = fetched_data.get('activities-heart-intraday', [])
                 dates = []
                 average_heart_rates = []
                 for hr in heart_rate_data:
-                    if 'dateTime' in hr and 'value' in hr and isinstance(hr['value'],dict):
-                        if 'restingHeartRate' in hr['value']:
-                            date = hr['dateTime']
-                            avg_heart_rate = hr['value']['restingHeartRate']
+                    if 'dataset' in hr and isinstance(hr['dataset'],dict):
+                        if 'value' in hr['dataset']:
+                            date = hr['time']
+                            avg_heart_rate = hr['dataset']['value']
                             dates.append(date)
                             average_heart_rates.append(avg_heart_rate)
-                            
+
                 if dates and average_heart_rates:
                     df = pd.DataFarame({
                         'Date': dates,
