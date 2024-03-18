@@ -5,7 +5,7 @@ import plotly.express as px
 from io import BytesIO
 import datetime
 from datetime import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Consolidated Function to Fetch Data
 def fetch_data(access_token, data_type, start_date, end_date, start_time, end_time):
@@ -106,8 +106,8 @@ if len(selected_date_range) == 2:
 
                 df = pd.DataFrame({"Time": times, "Steps": steps})
                 if not df.empty:
-                    fig_intraday = px.line(df, x="Time", y="Steps", title="Intraday Steps (1-minute interval)")
-                    st.plotly_chart(fig_intraday)
+                    fig = px.line(df, x="Time", y="Steps", title="Intraday Steps (1-minute interval)")
+                    st.plotly_chart(fig)
                 else:
                     st.write("No intraday steps data available for the selected time range.")
 
