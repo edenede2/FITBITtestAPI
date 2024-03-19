@@ -19,8 +19,7 @@ def fetch_data(access_token, data_type, start_date, end_date, start_time, end_ti
         'Sleep Levels': f"{base_url}sleep/date/{start_date}/{end_date}.json",
         'Heart Rate': f"{base_url}activities/heart/date/{start_date}/1d/1sec/time/{start_time}/{end_time}.json",
         'HRV Intraday by Interval': f"{base_urll}hrv/date/{start_date}/{end_date}/all.json",
-        'Daily RMSSD': f"{base_urll}hrv/date/{start_date}/all.json",
-        'ECG': f'{base_urll}ecg/list.json?afterDate={start_date}&sort=asc&limit=1&offset=0'
+        'Daily RMSSD': f"{base_urll}hrv/date/{start_date}/all.json"
     }
     
     
@@ -56,7 +55,7 @@ selected_label = st.selectbox('Select a Watch:', list(tokens.keys()))
 selected_token = tokens[selected_label]
 
 # Select data type
-data_type = st.radio("Select Data Type:", ['Sleep', 'Steps', 'Steps Intraday', 'Sleep Levels', 'Heart Rate','Daily RMSSD', 'HRV Intraday by Interval', 'ECG'])
+data_type = st.radio("Select Data Type:", ['Sleep', 'Steps', 'Steps Intraday', 'Sleep Levels', 'Heart Rate','Daily RMSSD', 'HRV Intraday by Interval', 'HF Intraday by Interval', 'LF Intraday by Interval'])
 
 # Initialize default start and end dates as today's date, or choose your own defaults
 default_start_date = datetime.today() - timedelta(days=7)
@@ -154,11 +153,11 @@ if len(selected_date_range) == 2:
                 rmssd_values = [entry['value']['rmssd'] for entry in hrv_intraday_data]
 
                 if times and rmssd_values:  # Ensure both lists have data
-                    df_hrv = pd.DataFrame({
+                    df = pd.DataFrame({
                         'Time': times,
                         'RMSSD': rmssd_values
                     })
-                    fig = px.line(df_hrv, x='Time', y='RMSSD', title='HRV RMSSD Intraday Variation')
+                    fig = px.line(df, x='Time', y='RMSSD', title='HRV RMSSD Intraday Variation')
                     st.plotly_chart(fig)
                 else:
                     st.write("No HRV intraday data available for the selected date range.")
