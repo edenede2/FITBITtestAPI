@@ -90,7 +90,23 @@ if len(selected_date_range) == 2:
                     st.plotly_chart(fig)
                 else:
                     st.write("No sleep data available for the selected date range.")
-    
+            elif data_type == 'Sleep Levels':
+                sleep_data = fetched_data.get('sleep', [])
+                sleep_levels = [sleep['levels'] for sleep in sleep_data]
+                dates = [sleep['dateOfSleep'] for sleep in sleep_data]
+                durations = [sleep['duration']/3600000 for sleep in sleep_data]  
+                df = pd.DataFrame({'Date': dates, 'Duration': durations})
+                if not df.empty:
+                    # Show a plot that show each level of sleep in a different color
+                    # You might need to adjust the visualization based on your requirements
+                    for sleep_level in sleep_levels:
+                        sleep_df = pd.DataFrame(sleep_level['data'])
+                        sleep_df['dateTime'] = pd.to_datetime(sleep_df['dateTime'])
+                        fig = px.line(sleep_df, x='dateTime', y='level', title='Sleep Levels Over Time')
+                        st.plotly_chart(fig)
+                else:
+                    st.write("No sleep data available for the selected date range.")
+ 
             elif data_type == 'Steps':
                 steps_summary = fetched_data.get("activities-steps", [])
                 dates = [entry["dateTime"] for entry in steps_summary]
@@ -181,29 +197,7 @@ if len(selected_date_range) == 2:
                     st.plotly_chart(fig)
                 else:
                     st.write("No daily RMSSD data available for the selected date range.")        
-            elif data_type == 'Sleep Levels':
-                sleep_levels = fetched_data.get('sleep', [])
-                dates = [sleep['dateOfSleep'] for sleep in sleep_levels]
-                levels = [sleep['levels'] for sleep in sleep_levels]
-
-                # Example: Focus on the first sleep entry for simplicity
-                if levels:
-                    sleep = levels[0]
-                    stages = sleep.get('data', [])
-                    if stages:
-                        df = pd.DataFrame(stages)
-                        if not df.empty:
-                            # Assuming 'dateTime' is the timestamp for the sleep stage
-                            df['dateTime'] = pd.to_datetime(df['dateTime'])
-                            fig = px.line(df, x='dateTime', y='level', title='Sleep Stages')
-                            st.plotly_chart(fig)
-                        else:
-                            st.write("No sleep stage data available for the selected date range.")
-                    else:
-                        st.write("No sleep stage data available for the selected date range.")
-                else:
-                    st.write("No sleep data available for the selected date range.")
-            
+             
             # Processing and visualizing ECG data
             elif data_type == 'ECG':
                 ecg_readings = fetched_data.get('ecgReadings', [])
