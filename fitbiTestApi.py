@@ -181,6 +181,29 @@ if len(selected_date_range) == 2:
                     st.plotly_chart(fig)
                 else:
                     st.write("No daily RMSSD data available for the selected date range.")        
+            elif data_type == 'Sleep Levels':
+                sleep_levels = fetched_data.get('sleep', [])
+                dates = [sleep['dateOfSleep'] for sleep in sleep_levels]
+                levels = [sleep['levels'] for sleep in sleep_levels]
+
+                # Example: Focus on the first sleep entry for simplicity
+                if levels:
+                    sleep = levels[0]
+                    stages = sleep.get('data', [])
+                    if stages:
+                        df = pd.DataFrame(stages)
+                        if not df.empty:
+                            # Assuming 'dateTime' is the timestamp for the sleep stage
+                            df['dateTime'] = pd.to_datetime(df['dateTime'])
+                            fig = px.line(df, x='dateTime', y='level', title='Sleep Stages')
+                            st.plotly_chart(fig)
+                        else:
+                            st.write("No sleep stage data available for the selected date range.")
+                    else:
+                        st.write("No sleep stage data available for the selected date range.")
+                else:
+                    st.write("No sleep data available for the selected date range.")
+            
             # Processing and visualizing ECG data
             elif data_type == 'ECG':
                 ecg_readings = fetched_data.get('ecgReadings', [])
@@ -205,6 +228,7 @@ if len(selected_date_range) == 2:
                 else:
                     st.write("No ECG data available for the selected range.")
                     # Check if df is defined and not empty
+                
     if not df.empty:
         # Proceed with Excel file creation and download functionality
         to_excel = BytesIO()
