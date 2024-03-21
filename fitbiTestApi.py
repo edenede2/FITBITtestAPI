@@ -222,6 +222,7 @@ if len(selected_date_range) == 2:
                 else:
                     st.write("No ECG data available for the selected range.")
                     # Check if df is defined and not empty
+                    
                 
     if not df.empty:
         # Proceed with Excel file creation and download functionality
